@@ -1,5 +1,7 @@
 """Aplicação de terminal para gerenciamento de tarefas pessoais."""
 
+from datetime import datetime
+
 
 def exibir_menu():
     """Exibe as opções disponíveis no TaskTracker."""
@@ -19,18 +21,67 @@ def buscar_tarefa(tarefas, identificador):
     return None
 
 
+def validar_titulo():
+    """Solicita um título até que seja informado um texto não vazio."""
+    while True:
+        titulo = input("Título: ").strip()
+        if titulo:
+            return titulo
+        print("Erro: o título é obrigatório e não pode conter apenas espaços.")
+
+
+def validar_prioridade():
+    """Solicita e normaliza uma prioridade aceita pelo sistema."""
+    prioridades = {
+        "alta": "Alta",
+        "média": "Média",
+        "media": "Média",
+        "baixa": "Baixa",
+    }
+
+    while True:
+        valor = input("Prioridade (Alta, Média ou Baixa): ").strip().casefold()
+        if valor in prioridades:
+            return prioridades[valor]
+        print("Erro: prioridade inválida. Digite Alta, Média ou Baixa.")
+
+
+def validar_data():
+    """Solicita uma data existente e no formato exato DD/MM/AAAA."""
+    while True:
+        valor = input("Data limite (DD/MM/AAAA): ").strip()
+        try:
+            data = datetime.strptime(valor, "%d/%m/%Y")
+            if data.strftime("%d/%m/%Y") == valor:
+                return valor
+        except ValueError:
+            pass
+        print("Erro: informe uma data válida no formato DD/MM/AAAA.")
+
+
+def solicitar_id(operacao):
+    """Solicita um identificador numérico para a operação indicada."""
+    valor = input(f"ID da tarefa a {operacao}: ").strip()
+    try:
+        return int(valor)
+    except ValueError:
+        print("Erro: o ID deve ser um número inteiro.")
+        return None
+
+
 def cadastrar_tarefa(tarefas, proximo_id):
     """Recebe os dados e adiciona uma tarefa à lista."""
     tarefa = {
         "id": proximo_id,
-        "titulo": input("Título: ").strip(),
+        "titulo": validar_titulo(),
         "descricao": input("Descrição: ").strip(),
-        "prioridade": input("Prioridade (Alta, Média ou Baixa): ").strip(),
-        "data_limite": input("Data limite (DD/MM/AAAA): ").strip(),
+        "prioridade": validar_prioridade(),
+        "data_limite": validar_data(),
         "status": "Pendente",
     }
     tarefas.append(tarefa)
     print(f'Tarefa "{tarefa["titulo"]}" cadastrada com sucesso!')
+    return tarefa
 
 
 def listar_tarefas(tarefas):
@@ -48,21 +99,47 @@ def listar_tarefas(tarefas):
         print(f'Data limite: {tarefa["data_limite"]}')
         print(f'Status: {tarefa["status"]}')
 
+    pendentes = sum(tarefa["status"] == "Pendente" for tarefa in tarefas)
+    concluidas = sum(tarefa["status"] == "Concluída" for tarefa in tarefas)
+    print("\n========== RESUMO ==========\n")
+    print(f"Total de tarefas: {len(tarefas)}")
+    print(f"Pendentes: {pendentes}")
+    print(f"Concluídas: {concluidas}")
+
 
 def concluir_tarefa(tarefas):
     """Marca uma tarefa como concluída."""
-    identificador = int(input("ID da tarefa a concluir: "))
+    if not tarefas:
+        print("Nenhuma tarefa cadastrada no momento.")
+        return
+
+    identificador = solicitar_id("concluir")
+    if identificador is None:
+        return
+
     tarefa = buscar_tarefa(tarefas, identificador)
-    if tarefa:
-        tarefa["status"] = "Concluída"
-        print("Tarefa concluída com sucesso!")
-    else:
+    if not tarefa:
         print("Tarefa não encontrada.")
+        return
+
+    if tarefa["status"] == "Concluída":
+        print("A tarefa já está concluída. Nenhuma alteração foi realizada.")
+        return
+
+    tarefa["status"] = "Concluída"
+    print("Tarefa concluída com sucesso!")
 
 
 def remover_tarefa(tarefas):
     """Remove uma tarefa após confirmação."""
-    identificador = int(input("ID da tarefa a remover: "))
+    if not tarefas:
+        print("Nenhuma tarefa cadastrada no momento.")
+        return
+
+    identificador = solicitar_id("remover")
+    if identificador is None:
+        return
+
     tarefa = buscar_tarefa(tarefas, identificador)
     if not tarefa:
         print("Tarefa não encontrada.")
@@ -74,8 +151,10 @@ def remover_tarefa(tarefas):
     if confirmacao == "S":
         tarefas.remove(tarefa)
         print("Tarefa removida com sucesso!")
-    else:
+    elif confirmacao == "N":
         print("Remoção cancelada.")
+    else:
+        print("Confirmação inválida. Remoção cancelada.")
 
 
 def main():
