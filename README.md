@@ -1,8 +1,9 @@
 # TaskTracker
 
 Gerenciador de tarefas pessoais executado no terminal, desenvolvido em Python
-para a Fase 2 do Bootcamp II. A aplicação transforma o planejamento lógico da
-Fase 1 em um programa funcional, com dados mantidos temporariamente em memória.
+ao longo das três fases do Bootcamp II. A aplicação transforma o planejamento
+lógico da Fase 1 em um programa funcional, agora empacotado para execução
+reprodutível com Docker, com dados mantidos temporariamente em memória.
 
 ## Objetivo
 
@@ -27,6 +28,7 @@ banco de dados, interface gráfica ou serviços externos.
 
 - Python 3;
 - módulos `datetime` e `unittest` da biblioteca padrão;
+- Docker e Docker Compose para containerização e execução interativa;
 - Git para controle de versão;
 - Markdown para documentação.
 
@@ -36,11 +38,14 @@ Não há dependências Python externas.
 
 ```text
 tasktracker-projeto/
-├── README.md
 ├── .gitignore
+├── Dockerfile
+├── docker-compose.yml
+├── README.md
 ├── docs/
 │   ├── planejamento_logico.pdf
-│   └── roteiro_apresentacao.md
+│   ├── roteiro_apresentacao.md
+│   └── roteiro_fase3.md
 ├── src/
 │   └── main.py
 └── tests/
@@ -50,6 +55,7 @@ tasktracker-projeto/
 ## Pré-requisitos
 
 - Python 3.10 ou mais recente instalado;
+- Docker com o plugin Docker Compose, para a execução em contêiner;
 - terminal compatível com UTF-8;
 - Git, necessário apenas para versionamento e publicação.
 
@@ -75,6 +81,40 @@ O comando principal solicitado para o projeto é:
 ```bash
 python src/main.py
 ```
+
+## Execução com Docker
+
+Na raiz do repositório, execute os comandos abaixo. Eles estão prontos para
+copiar e colar:
+
+```bash
+docker build -t tasktracker .
+docker run -it --rm tasktracker
+docker compose run --rm tasktracker
+```
+
+O `Dockerfile` é a receita usada para construir a imagem da aplicação. A imagem
+base `python:3.11-slim` fornece o Python 3.11 em uma distribuição reduzida, o que
+mantém a imagem leve e suficiente para este projeto sem dependências externas.
+`PYTHONUNBUFFERED=1` faz com que as mensagens do programa sejam enviadas
+imediatamente ao terminal, sem ficarem retidas em buffer.
+
+Como o TaskTracker usa `input()`, ele precisa de um terminal interativo para
+receber as opções do menu e os dados das tarefas. No comando `docker run`, a
+opção `-i` mantém a entrada padrão aberta e `-t` aloca um terminal. No Compose,
+`stdin_open: true` cumpre o papel de `-i`, enquanto `tty: true` cumpre o papel de
+`-t`.
+
+Para encerrar normalmente, escolha a opção `5` no menu. O parâmetro `--rm`
+remove automaticamente o contêiner encerrado, sem remover a imagem
+`tasktracker`.
+
+`docker run -it --rm tasktracker` executa diretamente uma imagem já construída.
+Já `docker compose run --rm tasktracker` usa a definição do serviço
+`tasktracker` em `docker-compose.yml`, centralizando o build e as configurações
+de interatividade. O Compose constrói a imagem do serviço quando necessário;
+`docker compose build` também pode ser usado para fazer esse build de forma
+explícita.
 
 ## Exemplo de utilização
 
@@ -142,17 +182,12 @@ de menu. Embora o enunciado mínimo da Fase 2 apresente três opções, foram
 mantidas as cinco operações planejadas originalmente para preservar a evolução
 cumulativa do TaskTracker.
 
-## Próximos passos — Fase 3
+## Evolução na Fase 3
 
-Na próxima etapa, o projeto poderá receber:
-
-- um `Dockerfile` para empacotar a aplicação e o runtime Python;
-- instruções de build e execução da imagem Docker;
-- ampliação da estratégia de testes;
-- configuração de integração contínua e deploy, conforme o enunciado final.
-
-Persistência permanente e novas interfaces somente deverão ser incluídas se
-forem exigidas pelo escopo da Fase 3.
+A Fase 3 adiciona o `Dockerfile`, a configuração do Docker Compose e as
+instruções de execução em contêiner, preservando o planejamento da Fase 1, o
+código Python e as regras de negócio da Fase 2. O escopo continua sendo uma CLI
+em memória: não foram adicionados banco de dados, servidor HTTP ou frameworks.
 
 ## Identificação acadêmica
 
